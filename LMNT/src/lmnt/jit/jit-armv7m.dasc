@@ -697,7 +697,7 @@ lmnt_result lmnt_jit_armv7m_compile(lmnt_ictx* ctx, const lmnt_def* def, lmnt_ji
         |.macro roundv1, mode
         ||acquireVectorRegisterOrDefault(state, in.arg3, &reg3, ACCESSTYPE_WRITE, vtmpv1);
         ||acquireVectorRegisterOrLoad(state, in.arg1, &reg1, ACCESSTYPE_READ, vtmpv2);
-        | ensurermode RMODE_NEGINF, r0
+        | ensurermode mode, r0
         | vcvtr.s32.f32 s(reg3 + 0), s(reg1 + 0)
         | vcvt.f32.s32  s(reg3 + 0), s(reg3 + 0)
         | vcvtr.s32.f32 s(reg3 + 1), s(reg1 + 1)
