@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.11)
 
 project(element)
 
@@ -46,6 +46,21 @@ set(element_sources
     "include/element/lmnt.h"
 )
 
+
+include(FetchContent)
+FetchContent_Declare(
+    utfcpp
+    GIT_REPOSITORY https://github.com/nemtrif/utfcpp
+    GIT_TAG v3.1
+)
+FetchContent_GetProperties(utfcpp)
+if (NOT utfcpp_POPULATED)
+    FetchContent_Populate(utfcpp)
+    add_library(utf8cpp INTERFACE)
+    target_include_directories(utf8cpp INTERFACE "${utfcpp_SOURCE_DIR}/source")
+endif ()
+
+
 add_library(element STATIC ${element_sources})
 target_include_directories(element
     PUBLIC
@@ -56,6 +71,7 @@ target_include_directories(element
         # TODO: this, much nicer
         "${CMAKE_CURRENT_SOURCE_DIR}/../LMNT/include"
 )
+target_link_libraries(element PRIVATE utf8cpp)
 
 if (UNIX)
     target_link_libraries(element PRIVATE "m")
