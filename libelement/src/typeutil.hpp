@@ -22,15 +22,27 @@ public:
     }
 
     template <typename TD>
+    TD* cast()
+    {
+        return static_cast<TD*>(this);
+    }
+
+    template <typename TD>
+    const TD* cast() const
+    {
+        return static_cast<const TD*>(this);
+    }
+
+    template <typename TD>
     TD* as()
     {
-        return is<TD>() ? static_cast<TD*>(this) : nullptr;
+        return is<TD>() ? cast<TD>() : nullptr;
     }
 
     template <typename TD>
     const TD* as() const
     {
-        return is<TD>() ? static_cast<const TD*>(this) : nullptr;
+        return is<TD>() ? cast<TD>() : nullptr;
     }
 
 protected:
