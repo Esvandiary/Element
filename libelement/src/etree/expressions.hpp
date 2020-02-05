@@ -31,7 +31,6 @@ protected:
     }
 
     std::vector<expression_shared_ptr> m_dependents;
-    element_type_id m_type_id = 0;
 };
 
 struct element_constant : public element_expression
