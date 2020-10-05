@@ -1,5 +1,6 @@
 #include "lmnt/validation.h"
 #include "helpers.h"
+#include "util/crc32.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -28,7 +29,7 @@ static int32_t validate_string(const lmnt_archive* archive, lmnt_offset str_inde
     const archive_string_header* shdr = (const archive_string_header*)(get_strings_segment(archive) + str_index);
     str_index += sizeof(archive_string_header);
     // Does this string extend beyond the end of the strings segment?
-    if (shdr->size > (hdr->strings_length - str_index))
+    if (shdr->size == 0 || shdr->size > (hdr->strings_length - str_index))
         return LMNT_VERROR_STRING_SIZE;
     // Strings are C-strings: they must end in a null
     const char* last_char = get_strings_segment(archive) + str_index + shdr->size - 1;
@@ -332,6 +333,22 @@ static int32_t validate_code(const lmnt_archive* archive, const lmnt_def* def, l
     return sizeof(lmnt_code) + (chdr->instructions_count * sizeof(lmnt_instruction));
 }
 
+static lmnt_validation_result validate_manifest_basic(const lmnt_archive* archive, lmnt_offset* offset)
+{
+    const lmnt_archive_header* header = (const lmnt_archive_header*)archive->data;
+    const lmnt_manifest_basic* m = (const lmnt_manifest_basic*)(get_manifest_segment(archive) + *offset);
+    // This relies on validate_string doing bounds-checking (which it does)
+    if (validate_string(archive, m->archive_name) < 0)
+        return LMNT_VERROR_INVALID_MANIFEST;
+    // CRC-check everything after the manifest
+    const size_t content_size = archive->size - sizeof(lmnt_archive_header) - header->manifest_length;
+    const uint32_t actual_crc = crc32(get_strings_segment(archive), content_size);
+    if (m->archive_content_crc32 != actual_crc)
+        return LMNT_VERROR_INVALID_MANIFEST;
+    *offset += sizeof(lmnt_manifest_basic);
+    return LMNT_VALIDATION_OK;
+}
+
 
 lmnt_validation_result lmnt_archive_validate(lmnt_archive* archive, size_t memory_size, size_t* stack_count)
 {
@@ -341,7 +358,9 @@ lmnt_validation_result lmnt_archive_validate(lmnt_archive* archive, size_t memor
     const lmnt_archive_header* hdr = (const lmnt_archive_header*)(archive->data);
     if (strcmp(hdr->magic, "LMNT") != 0)
         return LMNT_VERROR_HEADER_MAGIC;
-    const size_t segs_len = (size_t)hdr->strings_length + (size_t)hdr->defs_length + (size_t)hdr->code_length + (size_t)hdr->data_length + (size_t)hdr->constants_length;
+    const size_t segs_len =
+        (size_t)hdr->manifest_length + (size_t)hdr->strings_length + (size_t)hdr->defs_length
+        + (size_t)hdr->code_length + (size_t)hdr->data_length + (size_t)hdr->constants_length;
     if (archive->size != sizeof(lmnt_archive_header) + segs_len)
         return LMNT_VERROR_SEGMENTS_SIZE;
 
@@ -357,6 +376,16 @@ lmnt_validation_result lmnt_archive_validate(lmnt_archive* archive, size_t memor
     const size_t total_stack_count = (memory_size - (get_constants_segment(archive) - archive->data)) / sizeof(lmnt_value);
     const size_t constants_count = (hdr->constants_length / sizeof(lmnt_value));
     const size_t rw_stack_count = total_stack_count - constants_count;
+
+
+    // Manifest
+    if (hdr->manifest_length > 0)
+    {
+        lmnt_manifest_sections sections = *((const lmnt_manifest_sections*)get_manifest_segment(archive));
+        lmnt_offset manifest_offset = sizeof(lmnt_manifest_sections);
+        if (sections & LMNT_MANIFEST_BASIC)
+            LMNT_V_OK_OR_RETURN(validate_manifest_basic(archive, &manifest_offset));
+    }
 
     // Strings
     lmnt_offset str_index = 0;

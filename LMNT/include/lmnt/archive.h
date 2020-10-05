@@ -29,12 +29,28 @@ typedef struct lmnt_archive_header
     uint8_t version_minor;
     uint8_t reserved0;
     uint8_t reserved1;
+    uint32_t manifest_length;
     uint32_t strings_length;
     uint32_t defs_length;
     uint32_t code_length;
     uint32_t data_length;
     uint32_t constants_length;
 } lmnt_archive_header;
+
+typedef uint16_t lmnt_manifest_sections;
+enum
+{
+    LMNT_MANIFEST_NONE  = (0U << 0),
+    LMNT_MANIFEST_BASIC = (1U << 0),
+};
+
+typedef struct lmnt_manifest_basic
+{
+    lmnt_offset archive_name; // string
+    uint8_t archive_version_major;
+    uint8_t archive_version_minor;
+    uint32_t archive_content_crc32;
+} lmnt_manifest_basic;
 
 typedef uint16_t lmnt_def_flags;
 enum
@@ -86,6 +102,8 @@ typedef struct lmnt_data_section
 
 lmnt_result lmnt_archive_init(lmnt_archive* archive, const char* data, size_t size);
 lmnt_result lmnt_archive_print(const lmnt_archive* archive);
+
+lmnt_result lmnt_get_manifest_section(const lmnt_archive* archive, lmnt_manifest_sections section, const void** ptr);
 
 lmnt_result lmnt_get_constant(const lmnt_archive* archive, uint32_t offset, lmnt_value* value);
 lmnt_result lmnt_get_constants(const lmnt_archive* archive, uint32_t offset, const lmnt_value** value);

@@ -4,6 +4,7 @@ set(test_headers
     "test_bounds.h"
     "test_branch.h"
     "test_fncall.h"
+    "test_manifest.h"
     "test_maths_scalar.h"
     "test_maths_vector.h"
     "test_misc.h"

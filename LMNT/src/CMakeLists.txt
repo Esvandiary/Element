@@ -14,6 +14,9 @@ set(lmnt_sources
     "ops_trig.c"
 
     "helpers.h"
+
+    "util/crc32.c"
+    "util/crc32.h"
 )
 
 add_library(lmnt STATIC ${lmnt_sources})

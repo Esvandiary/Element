@@ -21,9 +21,14 @@ static inline const lmnt_archive_header* get_header(const lmnt_archive* archive)
     return (const lmnt_archive_header*)archive->data;
 }
 
-static inline const char* get_strings_segment(const lmnt_archive* archive)
+static inline const char* get_manifest_segment(const lmnt_archive* archive)
 {
     return archive->data + sizeof(lmnt_archive_header);
+}
+
+static inline const char* get_strings_segment(const lmnt_archive* archive)
+{
+    return get_manifest_segment(archive) + get_header(archive)->manifest_length;
 }
 
 static inline const char* get_defs_segment(const lmnt_archive* archive)
@@ -59,6 +64,10 @@ static inline size_t value_to_size_t(lmnt_value v)
 }
 
 
+static inline lmnt_manifest_sections validated_get_manifest_sections(const lmnt_archive* archive)
+{
+    return *((const lmnt_manifest_sections*)get_manifest_segment(archive));
+}
 
 static inline const char* validated_get_string(const lmnt_archive* archive, uint32_t offset)
 {

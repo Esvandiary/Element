@@ -4,6 +4,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <limits.h>
 
 #include "lmnt/extcalls.h"
@@ -24,6 +25,28 @@ lmnt_result lmnt_archive_init(lmnt_archive* archive, const char* data, size_t si
     archive->size = size;
     archive->flags = LMNT_ARCHIVE_NONE;
     return LMNT_OK;
+}
+
+lmnt_result lmnt_get_manifest_section(const lmnt_archive* archive, lmnt_manifest_sections section, const void** ptr)
+{
+    LMNT_ENSURE_VALIDATED(archive);
+    *ptr = NULL;
+    const bool single_bit_set = section && !(section & (section-1));
+    if (!single_bit_set)
+        return LMNT_ERROR_INVALID_OPERATION;
+    const lmnt_manifest_sections sections_present = validated_get_manifest_sections(archive);
+    if (!(sections_present & section))
+        return LMNT_ERROR_NOT_FOUND;
+
+    size_t offset = sizeof(lmnt_manifest_sections);
+    if (section == LMNT_MANIFEST_BASIC) {
+        *ptr = get_manifest_segment(archive) + offset;
+        return LMNT_OK;
+    } else if (sections_present & LMNT_MANIFEST_BASIC) {
+        offset += sizeof(lmnt_manifest_basic);
+    }
+    // ...
+    return LMNT_ERROR_INTERNAL;
 }
 
 lmnt_result lmnt_get_constant(const lmnt_archive* archive, uint32_t offset, lmnt_value* value)

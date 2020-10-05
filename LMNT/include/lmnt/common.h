@@ -27,6 +27,7 @@ enum
     LMNT_ERROR_MISSING_EXTCALL    = -15,
     LMNT_ERROR_FEATURE_DISABLED   = -16,
     LMNT_ERROR_UNPREPARED_ARCHIVE = -17,
+    LMNT_ERROR_INVALID_OPERATION  = -18,
     LMNT_ERROR_INTERNAL           = -1024,
     // These error codes are only used internally
     LMNT_BRANCHING                = -65536,
@@ -53,7 +54,7 @@ enum
     LMNT_VERROR_CONSTANTS_ALIGN  = -14,
     LMNT_VERROR_STACK_SIZE       = -15,
     LMNT_VERROR_STACK_DEPTH      = -16,
-    LMNT_VERROR_NO_IMPL          = -17, // get rid of this at some point
+    LMNT_VERROR_INVALID_MANIFEST = -17,
 };
 
 // Result type returned by most library operations
