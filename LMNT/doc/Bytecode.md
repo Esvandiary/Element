@@ -8,6 +8,7 @@ A single bytecode archive can contain multiple functions to be executed. All int
 
 The structure of the file is made up of multiple segments:
 * File Header
+* Manifest Table
 * Strings Table
 * Definitions Table
 * Code Table
@@ -31,6 +32,7 @@ struct {
     uint8_t version_minor;
     uint8_t reserved0;
     uint8_t reserved1;
+    uint32_t manifest_length;
     uint32_t strings_length;
     uint32_t defs_length;
     uint32_t code_length;
@@ -38,6 +40,37 @@ struct {
     uint32_t constants_length;
 }
 ```
+
+
+### Manifest Table
+
+The manifest table starts with a bitfield of sections which are present; this table header could be represented as:
+```c
+struct {
+    uint16_t sections_present;
+}
+```
+
+Each section is represented by one bit, in a set defined in `archive.h`. After this table header, the section contents of the present sections are appended in sequence defined by their order in the bitfield (the lowest bit 0 first, then bit 1, etc). There must be no padding present between the header and the first section, or between one section and the next.
+
+The entire manifest table is optional, and may be omitted if the header's `manifest_length` is zero. Implementations must consider this equivalent to the manifest being present with no sections defined.
+
+The currently-defined sections are described below:
+
+#### Basic Section (`LMNT_MANIFEST_BASIC`)
+
+```c
+struct {
+    uint16_t name;
+    uint8_t version_major;
+    uint8_t version_minor;
+    uint32_t content_crc32;
+}
+```
+
+The `name` member of the section must be an offset to a valid string in the strings table.
+
+The `content_crc32` member contains the [CRC32](https://en.wikipedia.org/wiki/CRC32) hash of the archive's content, **starting after the end of the manifest table**. This means the hash is calculated from the start of the strings table to the end of the archive (inclusive of any padding).
 
 
 ### Strings Table
