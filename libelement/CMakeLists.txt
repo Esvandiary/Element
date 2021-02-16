@@ -194,6 +194,10 @@ set(element_sources
     "src/instruction_tree/instructions.hpp"
     "src/instruction_tree/fwd.hpp"
 
+    #LMNT
+    "src/lmnt/compiler.cpp"
+    "src/lmnt/compiler.hpp"
+
     #Util
     "src/stringutil.hpp"
     "src/typeutil.hpp"
