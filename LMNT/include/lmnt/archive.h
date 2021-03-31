@@ -1,6 +1,10 @@
 #ifndef LMNT_ARCHIVE_H
 #define LMNT_ARCHIVE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include "lmnt/common.h"
 #include "lmnt/opcodes.h"
@@ -106,5 +110,10 @@ lmnt_result lmnt_get_data_section(const lmnt_archive* archive, lmnt_offset index
 lmnt_result lmnt_get_data_block(const lmnt_archive* archive, const lmnt_data_section* section, const lmnt_value** block);
 
 lmnt_result lmnt_update_def_extcalls(lmnt_archive* archive, const lmnt_extcall_info* table, size_t table_count);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
